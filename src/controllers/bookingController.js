@@ -59,6 +59,43 @@ const recordBooking = async (bookingData, studentId) => {
   }
 };
 
+const updateBookingStatus = async (paymentId, status, metadata = {}) => {
+  try {
+    const q = query(collection(db, 'bookings'), where('paymentId', '==', paymentId));
+    const snap = await getDocs(q);
+    
+    if (snap.empty) {
+      console.warn(`⚠️ [BOOKING] No booking found for paymentId ${paymentId}`);
+      return false;
+    }
+
+    const bookingDoc = snap.docs[0];
+    await updateDoc(bookingDoc.ref, {
+      status: status,
+      updatedAt: serverTimestamp(),
+      ...metadata
+    });
+
+    console.log(`✅ [BOOKING STATUS] Updated ${bookingDoc.id} to ${status}`);
+    return true;
+  } catch (error) {
+    console.error("❌ [BOOKING STATUS ERROR]", error);
+    throw error;
+  }
+};
+
+const logFailedPayment = async (paymentData) => {
+  try {
+    await addDoc(collection(db, 'failed_payments'), {
+      ...paymentData,
+      createdAt: serverTimestamp()
+    });
+    console.log(`📉 [PAYMENT FAILED] Logged failure for ${paymentData.id}`);
+  } catch (error) {
+    console.error("❌ [LOG FAILED PAYMENT ERROR]", error);
+  }
+};
+
 exports.handleBookingSuccess = async (req, res) => {
   const { booking, studentId } = req.body;
   try {
@@ -70,3 +107,5 @@ exports.handleBookingSuccess = async (req, res) => {
 };
 
 exports.recordBooking = recordBooking;
+exports.updateBookingStatus = updateBookingStatus;
+exports.logFailedPayment = logFailedPayment;

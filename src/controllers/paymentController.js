@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { recordBooking } = require('./bookingController');
+const { recordBooking, updateBookingStatus, logFailedPayment } = require('./bookingController');
 
 exports.handleRazorpayWebhook = async (req, res) => {
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET || 'your_webhook_secret_here';
@@ -16,32 +16,57 @@ exports.handleRazorpayWebhook = async (req, res) => {
       return res.status(400).send({ message: "Invalid signature" });
     }
 
-    console.log("✅ [WEBHOOK] Valid Razorpay Signature.");
-
     const event = req.body.event;
-    const payload = req.body.payload.payment.entity;
+    const payload = req.body.payload;
 
-    // 2. Handle 'payment.captured' event
-    if (event === 'payment.captured') {
-      const { notes, id: paymentId, amount, currency } = payload;
-      
-      // Notes should contain the booking metadata sent from the frontend
-      // Expected: { studentId, tutorId, subject, date, time, studentEmail, tutorName }
-      if (notes && notes.studentId) {
-        console.log(`💳 [PAYMENT CAPTURED] Processing booking for ${notes.studentEmail}`);
+    console.log(`✅ [WEBHOOK] Valid Signature. Event: ${event}`);
+
+    // 2. Handle Events
+    switch (event) {
+      case 'payment.captured': {
+        const payment = payload.payment.entity;
+        const { notes, id: paymentId, amount, currency } = payment;
         
-        const bookingData = {
-          bookingId: notes.bookingId || `WEBHOOK_${paymentId}`,
-          paymentId: paymentId,
-          amount: amount / 100, // Convert from paise to rupees
-          currency: currency,
-          ...notes
-        };
-
-        await recordBooking(bookingData, notes.studentId);
-      } else {
-        console.warn("⚠️ [WEBHOOK] Payment captured but no booking notes found.");
+        if (notes && notes.studentId) {
+          console.log(`💳 [PAYMENT CAPTURED] Processing booking for ${notes.studentEmail}`);
+          const bookingData = {
+            bookingId: notes.bookingId || `WEBHOOK_${paymentId}`,
+            paymentId: paymentId,
+            amount: amount / 100,
+            currency: currency,
+            ...notes
+          };
+          await recordBooking(bookingData, notes.studentId);
+        }
+        break;
       }
+
+      case 'payment.failed': {
+        const payment = payload.payment.entity;
+        console.log(`❌ [PAYMENT FAILED] ID: ${payment.id}, Reason: ${payment.error_description}`);
+        await logFailedPayment({
+          paymentId: payment.id,
+          amount: payment.amount / 100,
+          error: payment.error_description,
+          studentEmail: payment.email,
+          notes: payment.notes
+        });
+        break;
+      }
+
+      case 'refund.processed': {
+        const refund = payload.refund.entity;
+        console.log(`↩️ [REFUND PROCESSED] ID: ${refund.id} for Payment: ${refund.payment_id}`);
+        await updateBookingStatus(refund.payment_id, 'refunded', {
+          refundId: refund.id,
+          refundAmount: refund.amount / 100,
+          refundStatus: refund.status
+        });
+        break;
+      }
+
+      default:
+        console.log(`ℹ️ [WEBHOOK] Unhandled event type: ${event}`);
     }
 
     // 3. Always return 200 to Razorpay immediately
