@@ -85,7 +85,8 @@ async function sendApprovalEmail(user, token) {
   const subject = "🎉 Verification Complete – Your Eduqra Journey Starts Now";
   
   // Magic Link for Approval (Using the unified verification endpoint)
-  const activationLink = `http://localhost:5001/api/auth/verify?token=${token}&role=tutor`;
+  const backendBaseUrl = process.env.BACKEND_URL || `http://localhost:5001`;
+  const activationLink = `${backendBaseUrl}/api/auth/verify?token=${token}&role=tutor`;
   
   const html = `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0fdf4; padding: 40px 0;">
@@ -293,7 +294,8 @@ async function sendPasswordResetEmail(email, resetLink) {
  */
 async function sendVerificationEmail(email, name, token, role = 'student') {
   const subject = "Verify Your Eduqra Account – Final Step";
-  const verifyLink = `http://localhost:5001/api/auth/verify?token=${token}&role=${role}`;
+  const backendBaseUrl = process.env.BACKEND_URL || `http://localhost:5001`;
+  const verifyLink = `${backendBaseUrl}/api/auth/verify?token=${token}&role=${role}`;
   
   const html = `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; padding: 40px 0;">
