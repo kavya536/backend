@@ -95,5 +95,9 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
 module.exports = app;
 
 // Required for Firebase Cloud Functions
-const { onRequest } = require("firebase-functions/v2/https");
-exports.api = onRequest({ region: "us-central1", memory: "1GiB" }, app);
+try {
+  const { onRequest } = require("firebase-functions/v2/https");
+  exports.api = onRequest({ region: "us-central1", memory: "1GiB" }, app);
+} catch (e) {
+  console.warn("⚠️ Firebase Functions module not loaded (running in standalone mode)");
+}

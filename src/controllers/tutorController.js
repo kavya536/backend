@@ -112,9 +112,7 @@ exports.approveTutor = async (req, res) => {
 
     const tutorData = userSnap.data();
     const updatePayload = { status: 'approved', approvedAt: serverTimestamp(), activated: false };
-    
     await updateDoc(userRef, updatePayload);
-    await setDoc(doc(db, 'tutors', tutorId), { ...tutorData, ...updatePayload }, { merge: true });
 
     const token = await generateVerificationToken(tutorId, 'tutor');
     await sendApprovalEmail({ ...tutorData, uid: tutorId }, token);
@@ -133,13 +131,10 @@ exports.rejectTutor = async (req, res) => {
     if (!userSnap.exists()) return res.status(404).send({ message: "Tutor not found" });
 
     const reason = feedback || 'Verification failed.';
-    await updateDoc(userRef, { status: 'rejected', rejectionReason: reason, rejectedAt: serverTimestamp() });
-    
-    await setDoc(doc(db, 'rejectedProfiles', tutorId), {
-      ...userSnap.data(),
-      status: 'rejected',
-      rejectionReason: reason,
-      rejectedAt: serverTimestamp()
+    await updateDoc(userRef, { 
+      status: 'rejected', 
+      rejectionReason: reason, 
+      rejectedAt: serverTimestamp() 
     });
 
     await sendRejectionEmail(userSnap.data(), reason);

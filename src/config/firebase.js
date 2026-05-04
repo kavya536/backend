@@ -5,14 +5,21 @@ require('dotenv').config();
 try {
     if (!admin.apps.length) {
       const clientEmail = process.env.FIREBASE_CLIENT_EMAIL || process.env.client_email;
-      const privateKey = process.env.FIREBASE_PRIVATE_KEY || process.env.private_key;
-
+      let privateKey = process.env.FIREBASE_PRIVATE_KEY || process.env.private_key;
+      
       if (clientEmail && privateKey) {
+        // More robust parsing: handle actual newlines, escaped \n, and accidental quotes
+        const formattedKey = privateKey
+          .replace(/\\n/g, '\n')
+          .replace(/\n/g, '\n')
+          .replace(/"/g, '')
+          .trim();
+
         admin.initializeApp({
           credential: admin.credential.cert({
             projectId: "tutor-website-c532a",
             clientEmail: clientEmail.trim(),
-            privateKey: privateKey.replace(/\\n/g, '\n').trim()
+            privateKey: formattedKey
           })
         });
         console.log("✅ Firebase Admin initialized (Pure Admin Mode)");
