@@ -1,31 +1,5 @@
 const admin = require('firebase-admin');
-const { initializeApp } = require('firebase/app');
-const { getFirestore } = require('firebase/firestore');
-const path = require('path');
-
-// Load environment variables (Vercel handles this automatically)
 require('dotenv').config();
-
-// Client SDK Config
-const firebaseConfig = {
-  apiKey: "AIzaSyDwXgG11d-FJc1IkRLs9_H7tR6NBIKXDbw",
-  authDomain: "tutor-website-c532a.firebaseapp.com",
-  projectId: "tutor-website-c532a",
-  storageBucket: "tutor-website-c532a.firebasestorage.app",
-  messagingSenderId: "925264880105",
-  appId: "1:925264880105:web:59a1d97951995179466b78"
-};
-
-let db;
-let firebaseApp;
-
-try {
-    firebaseApp = initializeApp(firebaseConfig);
-    db = getFirestore(firebaseApp);
-    console.log("✅ Firebase Client SDK initialized");
-} catch (e) {
-    console.error("❌ Firebase Client initialization failed", e);
-}
 
 // Initialize Admin SDK
 try {
@@ -38,9 +12,9 @@ try {
             privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
           })
         });
-        console.log("✅ Firebase Admin initialized");
+        console.log("✅ Firebase Admin initialized (Pure Admin Mode)");
       } else {
-        console.warn("⚠️ Firebase Admin credentials missing. Using default (may fail on Vercel).");
+        // Fallback for local development
         admin.initializeApp({ projectId: "tutor-website-c532a" });
       }
     }
@@ -48,4 +22,28 @@ try {
     console.error("❌ Firebase Admin initialization failed", e);
 }
 
-module.exports = { admin, db, firebaseApp };
+const db = admin.firestore();
+
+// Mock the Client SDK structures to prevent breaking other files
+module.exports = { 
+  admin, 
+  db,
+  // These help keep your other files working without changes
+  doc: (db, coll, id) => db.collection(coll).doc(id),
+  getDoc: (ref) => ref.get(),
+  setDoc: (ref, data, opts) => ref.set(data, opts),
+  updateDoc: (ref, data) => ref.update(data),
+  deleteDoc: (ref) => ref.delete(),
+  collection: (db, name) => db.collection(name),
+  addDoc: (coll, data) => coll.add(data),
+  serverTimestamp: admin.firestore.FieldValue.serverTimestamp,
+  increment: admin.firestore.FieldValue.increment,
+  arrayUnion: admin.firestore.FieldValue.arrayUnion,
+  query: (coll, ...constraints) => {
+    let q = coll;
+    constraints.forEach(c => { q = q.where(c.field, c.op, c.val); });
+    return q;
+  },
+  where: (field, op, val) => ({ field, op, val }),
+  getDocs: (q) => q.get()
+};
