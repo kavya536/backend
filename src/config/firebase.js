@@ -2,7 +2,9 @@ const admin = require('firebase-admin');
 const { initializeApp } = require('firebase/app');
 const { getFirestore } = require('firebase/firestore');
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../../.env') });
+
+// Load environment variables (Vercel handles this automatically)
+require('dotenv').config();
 
 // Client SDK Config
 const firebaseConfig = {
@@ -14,25 +16,36 @@ const firebaseConfig = {
   appId: "1:925264880105:web:59a1d97951995179466b78"
 };
 
-// Initialize Client SDK
-const firebaseApp = initializeApp(firebaseConfig);
-const db = getFirestore(firebaseApp);
+let db;
+let firebaseApp;
+
+try {
+    firebaseApp = initializeApp(firebaseConfig);
+    db = getFirestore(firebaseApp);
+    console.log("✅ Firebase Client SDK initialized");
+} catch (e) {
+    console.error("❌ Firebase Client initialization failed", e);
+}
 
 // Initialize Admin SDK
-if (!admin.apps.length) {
-  if (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: "tutor-website-c532a",
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
-      })
-    });
-    console.log("✅ Firebase Admin initialized (MVC Config)");
-  } else {
-    admin.initializeApp({ projectId: "tutor-website-c532a" });
-    console.warn("⚠️ Firebase Admin credentials missing in MVC Config.");
-  }
-} 
+try {
+    if (!admin.apps.length) {
+      if (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+        admin.initializeApp({
+          credential: admin.credential.cert({
+            projectId: "tutor-website-c532a",
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+            privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+          })
+        });
+        console.log("✅ Firebase Admin initialized");
+      } else {
+        console.warn("⚠️ Firebase Admin credentials missing. Using default (may fail on Vercel).");
+        admin.initializeApp({ projectId: "tutor-website-c532a" });
+      }
+    }
+} catch (e) {
+    console.error("❌ Firebase Admin initialization failed", e);
+}
 
 module.exports = { admin, db, firebaseApp };
