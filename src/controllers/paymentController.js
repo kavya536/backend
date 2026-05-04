@@ -1,5 +1,40 @@
 const crypto = require('crypto');
+const Razorpay = require('razorpay');
 const { recordBooking, updateBookingStatus, logFailedPayment } = require('./bookingController');
+
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET
+});
+
+exports.createRazorpayOrder = async (req, res) => {
+  try {
+    const { amount, receipt, notes } = req.body;
+    
+    const options = {
+      amount: Math.round(amount * 100), // amount in paise
+      currency: "INR",
+      receipt: receipt || `receipt_${Date.now()}`,
+      notes: notes || {}
+    };
+
+    const order = await razorpay.orders.create(options);
+    
+    console.log(`📦 [RAZORPAY] Order Created: ${order.id} for ₹${amount}`);
+    
+    res.status(200).json({
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency
+    });
+  } catch (error) {
+    console.error("❌ [RAZORPAY ORDER ERROR]", error);
+    res.status(500).json({ 
+      message: "Failed to create Razorpay order", 
+      error: error.message || error 
+    });
+  }
+};
 
 exports.handleRazorpayWebhook = async (req, res) => {
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET || 'your_webhook_secret_here';

@@ -21,6 +21,7 @@ router.get('/auth/verify', authController.verifyEmail);
 router.post('/auth/reset-password', authController.resetPassword);
 
 // --- BOOKING & PAYMENTS ---
+router.post('/create-razorpay-order', paymentController.createRazorpayOrder);
 router.post('/booking-success', bookingController.handleBookingSuccess);
 router.post('/webhooks/razorpay', paymentController.handleRazorpayWebhook);
 
