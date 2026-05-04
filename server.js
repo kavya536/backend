@@ -27,6 +27,18 @@ app.use(express.json({
 }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Root Route
+app.get('/', (req, res) => {
+  res.status(200).send({
+    message: "Welcome to Eduqra API",
+    status: "online",
+    endpoints: {
+      ping: "/api/ping",
+      routes: "/api/..."
+    }
+  });
+});
+
 // Health Check
 app.get('/api/ping', (req, res) => res.status(200).send({ status: 'alive', time: new Date() }));
 
