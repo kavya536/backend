@@ -68,9 +68,12 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`🚀 [MVC] Server running on port ${PORT}`);
-});
+// Only listen if NOT running on Vercel
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  server.listen(PORT, () => {
+    console.log(`🚀 [MVC] Server running on port ${PORT}`);
+  });
+}
 
 // Required for Vercel Serverless Functions
 module.exports = app;
