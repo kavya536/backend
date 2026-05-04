@@ -71,3 +71,6 @@ io.on('connection', (socket) => {
 server.listen(PORT, () => {
   console.log(`🚀 [MVC] Server running on port ${PORT}`);
 });
+
+// Required for Vercel Serverless Functions
+module.exports = app;
