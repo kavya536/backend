@@ -4,17 +4,21 @@ require('dotenv').config();
 // Initialize Admin SDK
 try {
     if (!admin.apps.length) {
-      if (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+      const clientEmail = process.env.FIREBASE_CLIENT_EMAIL || process.env.client_email;
+      const privateKey = process.env.FIREBASE_PRIVATE_KEY || process.env.private_key;
+
+      if (clientEmail && privateKey) {
         admin.initializeApp({
           credential: admin.credential.cert({
             projectId: "tutor-website-c532a",
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+            clientEmail: clientEmail.trim(),
+            privateKey: privateKey.replace(/\\n/g, '\n').trim()
           })
         });
         console.log("✅ Firebase Admin initialized (Pure Admin Mode)");
       } else {
         // Fallback for local development
+        console.warn("⚠️ Firebase credentials missing, falling back to default project ID initialization");
         admin.initializeApp({ projectId: "tutor-website-c532a" });
       }
     }

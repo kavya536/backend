@@ -1,8 +1,7 @@
-const { db } = require('../config/firebase');
 const { 
-  doc, getDoc, updateDoc, setDoc, 
+  db, doc, getDoc, updateDoc, setDoc, 
   collection, addDoc, serverTimestamp, increment, arrayUnion, query, where, getDocs 
-} = require('firebase/firestore');
+} = require('../config/firebase');
 const { sendBookingConfirmationEmail } = require('../../emailService');
 
 /**

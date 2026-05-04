@@ -6,9 +6,9 @@ exports.handleRazorpayWebhook = async (req, res) => {
   const signature = req.headers['x-razorpay-signature'];
 
   try {
-    // 1. Verify Webhook Signature
+    // 1. Verify Webhook Signature using raw body
     const shasum = crypto.createHmac('sha256', secret);
-    shasum.update(JSON.stringify(req.body));
+    shasum.update(req.rawBody || JSON.stringify(req.body));
     const digest = shasum.digest('hex');
 
     if (digest !== signature) {

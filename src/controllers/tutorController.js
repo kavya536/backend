@@ -1,8 +1,7 @@
-const { db } = require('../config/firebase');
 const { 
-  doc, getDoc, updateDoc, setDoc, deleteDoc, 
+  db, doc, getDoc, updateDoc, setDoc, deleteDoc, 
   collection, addDoc, serverTimestamp, query, where, getDocs 
-} = require('firebase/firestore');
+} = require('../config/firebase');
 const { handleFileUpload } = require('../services/fileService');
 const { 
   sendApprovalEmail, 

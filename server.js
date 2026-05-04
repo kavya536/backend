@@ -20,7 +20,11 @@ const PORT = process.env.PORT || 5001;
 
 // Middlewares
 app.use(cors());
-app.use(express.json());
+app.use(express.json({
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health Check
@@ -77,3 +81,7 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
 
 // Required for Vercel Serverless Functions
 module.exports = app;
+
+// Required for Firebase Cloud Functions
+const { onRequest } = require("firebase-functions/v2/https");
+exports.api = onRequest({ region: "us-central1", memory: "1GiB" }, app);

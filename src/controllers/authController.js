@@ -1,7 +1,4 @@
-const { db, admin } = require('../config/firebase');
-const { 
-  doc, getDoc, updateDoc, serverTimestamp, collection, query, where, getDocs 
-} = require('firebase/firestore');
+const { db, admin, doc, getDoc, updateDoc, serverTimestamp, collection, query, where, getDocs } = require('../config/firebase');
 const crypto = require('crypto');
 const { sendPasswordResetEmail } = require('../../emailService');
 
