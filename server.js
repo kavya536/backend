@@ -52,7 +52,8 @@ const liveRooms = new Map(); // roomId -> Set of { socketId, userId, userName, r
 io.on('connection', (socket) => {
   console.log(`🔌 [SOCKET] New connection: ${socket.id}`);
 
-  socket.on('join-room', ({ roomId, userId, userName, role }) => {
+  socket.on('join-room', ({ roomId: rawRoomId, userId, userName, role }) => {
+    const roomId = rawRoomId?.trim();
     if (!roomId || !userId) return;
 
     socket.join(roomId);
@@ -71,7 +72,9 @@ io.on('connection', (socket) => {
       userId, 
       userName, 
       role: socket.role,
-      joinedAt: new Date()
+      joinedAt: new Date(),
+      muted: false,
+      cameraOff: false
     });
 
     console.log(`🏠 [ROOM] ${userName} (${socket.role}) joined: ${roomId}. Total: ${roomParticipants.size}`);
