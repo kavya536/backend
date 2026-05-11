@@ -21,7 +21,7 @@ exports.registerStudent = async (req, res) => {
     const studentRef = doc(db, 'students', studentId);
     let snap = await getDoc(studentRef);
     
-    if (!snap.exists()) {
+    if (!snap.exists) {
         const newStudent = {
             name: name || "Student",
             email: email || "",

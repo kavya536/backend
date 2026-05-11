@@ -20,7 +20,11 @@ transporter.verify((error, success) => {
     if (process.env.EMAIL_USER && process.env.EMAIL_USER.includes('your-email')) {
       console.warn("\x1b[33m%s\x1b[0m", "⚠️ WARNING: Placeholder email credentials in .env. SMTP will not work.");
     } else {
-      logError("SYSTEM", `SMTP Connection failed: ${error.message}`);
+      let friendlyMsg = error.message;
+      if (error.code === 'ENOTFOUND') {
+        friendlyMsg = `DNS Lookup Failed (ENOTFOUND). Please check your internet connection or DNS settings. The server cannot resolve ${error.hostname || 'the SMTP host'}.`;
+      }
+      logError("SYSTEM", `SMTP Connection failed: ${friendlyMsg}`);
     }
   } else {
     logSuccess("SYSTEM", "Email server is ready to send notifications.");
@@ -324,6 +328,41 @@ async function sendVerificationEmail(email, name, token, role = 'student') {
   return sendEmail(email, subject, "Verify Your Email", html);
 }
 
+/**
+ * 9. Inquiry Response Email
+ */
+async function sendInquiryResponseEmail(queryData, adminResponse) {
+  if (!queryData.email) return;
+  const subject = `Re: Your Inquiry – Eduqra Support`;
+  const html = `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; padding: 40px 0;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+        <div style="background: linear-gradient(135deg, #004AAD 0%, #0066CC 100%); padding: 30px; text-align: center;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800;">Eduqra Support</h1>
+        </div>
+        <div style="padding: 40px;">
+          <p style="font-size: 16px; color: #1e293b; margin-bottom: 20px;">Hello <strong>${queryData.name}</strong>,</p>
+          <p style="font-size: 15px; color: #475569; line-height: 1.6;">Thank you for reaching out to Eduqra. We have reviewed your query and here is our response:</p>
+          
+          <div style="margin: 25px 0; padding: 25px; background-color: #f0f7ff; border-left: 4px solid #004AAD; border-radius: 4px;">
+            <p style="margin: 0; color: #1e3a8a; font-size: 15px; font-weight: 500; line-height: 1.6;">${adminResponse}</p>
+          </div>
+
+          <div style="margin-top: 35px; padding-top: 25px; border-top: 1px solid #f1f5f9;">
+            <p style="font-size: 13px; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 10px;">Your Original Message:</p>
+            <p style="font-size: 14px; color: #94a3b8; font-style: italic; line-height: 1.5;">"${queryData.message}"</p>
+          </div>
+
+          <p style="font-size: 14px; color: #475569; margin-top: 40px; text-align: center;">If you have any further questions, please feel free to reply to this email.</p>
+          <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 30px 0;" />
+          <p style="font-size: 11px; color: #94a3b8; text-align: center;">Eduqra Learning Technologies • Student Support Department</p>
+        </div>
+      </div>
+    </div>
+  `;
+  return sendEmail(queryData.email, subject, "Inquiry Response", html);
+}
+
 module.exports = { 
   sendEmail, 
   sendApprovalEmail, 
@@ -333,5 +372,6 @@ module.exports = {
   sendAdminLoginEmail,
   sendBookingConfirmationEmail,
   sendPasswordResetEmail,
-  sendVerificationEmail
+  sendVerificationEmail,
+  sendInquiryResponseEmail
 };

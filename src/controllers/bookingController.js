@@ -15,7 +15,7 @@ const recordBooking = async (bookingData, studentId) => {
     // 1. Idempotency Check (Prevent duplicate bookings)
     const bookingRef = doc(db, 'bookings', bookingId || `BOK_${Date.now()}`);
     const existingSnap = await getDoc(bookingRef);
-    if (existingSnap.exists()) {
+    if (existingSnap.exists) {
       console.log(`⚠️ [BOOKING] Booking ${bookingId} already recorded. Skipping.`);
       return { success: true, message: "Duplicate" };
     }

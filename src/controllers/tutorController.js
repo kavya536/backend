@@ -108,7 +108,7 @@ exports.approveTutor = async (req, res) => {
   try {
     const userRef = doc(db, 'users', tutorId);
     const userSnap = await getDoc(userRef);
-    if (!userSnap.exists()) return res.status(404).send({ message: "Tutor not found" });
+    if (!userSnap.exists) return res.status(404).send({ message: "Tutor not found" });
 
     const tutorData = userSnap.data();
     const updatePayload = { status: 'approved', approvedAt: serverTimestamp(), activated: false };
@@ -128,7 +128,7 @@ exports.rejectTutor = async (req, res) => {
   try {
     const userRef = doc(db, 'users', tutorId);
     const userSnap = await getDoc(userRef);
-    if (!userSnap.exists()) return res.status(404).send({ message: "Tutor not found" });
+    if (!userSnap.exists) return res.status(404).send({ message: "Tutor not found" });
 
     const reason = feedback || 'Verification failed.';
     await updateDoc(userRef, { 

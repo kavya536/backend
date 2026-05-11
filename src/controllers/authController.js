@@ -11,14 +11,14 @@ exports.verifyEmail = async (req, res) => {
     const tokenRef = doc(db, 'verificationTokens', hashedToken);
     const tokenSnap = await getDoc(tokenRef);
 
-    if (!tokenSnap.exists() || tokenSnap.data().usedAt) return res.status(400).send("Invalid/Expired link.");
+    if (!tokenSnap.exists || tokenSnap.data().usedAt) return res.status(400).send("Invalid/Expired link.");
     
     const tokenData = tokenSnap.data();
     await updateDoc(tokenRef, { usedAt: serverTimestamp() });
 
     const userRef = doc(db, 'users', tokenData.userId);
     const userSnap = await getDoc(userRef);
-    const currentStatus = userSnap.exists() ? userSnap.data().status : 'pending';
+    const currentStatus = userSnap.exists ? userSnap.data().status : 'pending';
 
     const updatePayload = {
       email_verified: true,

@@ -6,6 +6,7 @@ const studentController = require('../controllers/studentController');
 const authController = require('../controllers/authController');
 const bookingController = require('../controllers/bookingController');
 const paymentController = require('../controllers/paymentController');
+const supportController = require('../controllers/supportController');
 const { uploadFields } = require('../middleware/upload');
 
 // --- TUTOR ROUTES (Original Flat Paths) ---
@@ -24,5 +25,8 @@ router.post('/auth/reset-password', authController.resetPassword);
 router.post('/create-razorpay-order', paymentController.createRazorpayOrder);
 router.post('/booking-success', bookingController.handleBookingSuccess);
 router.post('/webhooks/razorpay', paymentController.handleRazorpayWebhook);
+
+// --- SUPPORT & INQUIRIES ---
+router.post('/respond-to-inquiry', supportController.respondToInquiry);
 
 module.exports = router;
