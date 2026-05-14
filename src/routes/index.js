@@ -21,6 +21,7 @@ router.post('/register-student', studentController.registerStudent);
 // --- AUTH ROUTES ---
 router.get('/auth/verify', authController.verifyEmail);
 router.post('/auth/reset-password', authController.resetPassword);
+router.post('/auth/send-verification', authController.sendVerification);
 
 // --- BOOKING & PAYMENTS ---
 router.post('/create-razorpay-order', paymentController.createRazorpayOrder);

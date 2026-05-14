@@ -1,4 +1,4 @@
-const { db, admin, doc, getDoc, updateDoc, serverTimestamp, collection, query, where, getDocs } = require('../config/firebase');
+const { db, admin, doc, getDoc, updateDoc, setDoc, serverTimestamp, collection, query, where, getDocs } = require('../config/firebase');
 const crypto = require('crypto');
 const { sendPasswordResetEmail } = require('../../emailService');
 
@@ -48,6 +48,29 @@ exports.resetPassword = async (req, res) => {
     await sendPasswordResetEmail(email, resetLink);
     res.status(200).send({ message: "Reset link sent." });
   } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+};
+
+exports.sendVerification = async (req, res) => {
+  const { userId, email, name, role } = req.body;
+  if (!userId || !email) return res.status(400).send({ message: "Missing required fields" });
+
+  try {
+    const token = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+    const { sendVerificationEmail } = require('../../emailService');
+
+    await setDoc(doc(db, 'verificationTokens', hashedToken), {
+      userId, role: role || 'student', expiresAt, usedAt: null, createdAt: serverTimestamp()
+    });
+
+    await sendVerificationEmail(email, name || 'User', token, role || 'student');
+    res.status(200).send({ message: "Verification link sent." });
+  } catch (error) {
+    console.error("Resend Verification Error:", error);
     res.status(500).send({ message: error.message });
   }
 };
