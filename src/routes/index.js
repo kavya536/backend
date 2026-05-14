@@ -13,6 +13,7 @@ const { uploadFields } = require('../middleware/upload');
 router.post('/register-tutor', uploadFields, tutorController.registerTutor);
 router.post('/approve-tutor', tutorController.approveTutor);
 router.post('/reject-tutor', tutorController.rejectTutor);
+router.post('/admin-tutor-action', tutorController.handleAdminTutorAction);
 
 // --- STUDENT ROUTES ---
 router.post('/register-student', studentController.registerStudent);
@@ -28,5 +29,8 @@ router.post('/webhooks/razorpay', paymentController.handleRazorpayWebhook);
 
 // --- SUPPORT & INQUIRIES ---
 router.post('/respond-to-inquiry', supportController.respondToInquiry);
+
+// --- KYC UPDATES ---
+router.post('/update-kyc', uploadFields, tutorController.updateKYC);
 
 module.exports = router;

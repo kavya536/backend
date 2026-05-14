@@ -22,16 +22,17 @@ exports.verifyEmail = async (req, res) => {
 
     const updatePayload = {
       email_verified: true,
-      status: (role === 'tutor' && currentStatus !== 'approved') ? 'pending' : 'active',
-      activated: (role === 'tutor' && currentStatus === 'approved') ? true : false
+      status: role === 'student' ? 'active' : (currentStatus === 'approved' ? 'approved' : 'pending'),
+      activated: true
     };
 
     await updateDoc(userRef, updatePayload);
     
     const loginUrl = role === 'tutor' 
-      ? 'https://eduqra-tutor-dashboard.web.app/login?verified=true'
-      : 'https://eduqra-student-hub.web.app/login?verified=true';
+      ? (process.env.TUTOR_LOGIN_URL || 'http://localhost:3001')
+      : (process.env.STUDENT_LOGIN_URL || 'http://localhost:3006/login');
     
+    console.log(`✅ [AUTH] Verifying ${role} ${tokenData.userId}. Redirecting to: ${loginUrl}`);
     res.redirect(loginUrl);
   } catch (error) {
     res.status(500).send("Verification error.");

@@ -32,6 +32,10 @@ transporter.verify((error, success) => {
 });
 
 async function sendEmail(to, subject, text, html) {
+  if (!to) {
+    logError("UNKNOWN", `Cannot send email [${subject}]: No recipient address provided.`);
+    return { success: false, error: "No recipient address provided." };
+  }
   try {
     const info = await transporter.sendMail({
       from: `"Eduqra Team" <${process.env.EMAIL_USER}>`,
@@ -131,9 +135,12 @@ async function sendApprovalEmail(user, token) {
  * 3. Tutor Rejected (Inspiring & Detailed)
  */
 async function sendRejectionEmail(user, feedback) {
-  if (!user.email) return;
+  if (!user || !user.email) {
+    console.warn(`⚠️ [SMTP] Cannot send rejection email: Missing user email. Data:`, user);
+    return;
+  }
   const subject = "Verification Feedback – Path Forward at Eduqra";
-  const reapplyLink = (process.env.REAPPLY_URL || "http://127.0.0.1:3001/login?reapply=true&email=") + encodeURIComponent(user.email);
+  const reapplyLink = (process.env.REAPPLY_URL || "http://localhost:3001/login?reapply=true&email=") + encodeURIComponent(user.email);
   console.log(`[SMTP] Generated re-apply link: ${reapplyLink}`);
   
   const html = `
